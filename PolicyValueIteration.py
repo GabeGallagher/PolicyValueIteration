@@ -110,8 +110,6 @@ def get_value_function(env, policy, acceptance_threshold):
 
         if np.sum(np.fabs(prev_val_function - val_function)) <= acceptance_threshold:
             is_converged = True
-            print("Value for " + policy.array2string + " found on iteration "
-                  + str(count))
 
     return val_function
 
@@ -175,10 +173,10 @@ Evaluates policy iteration algorithm for a given environment.
 """
 
 
-def evaluate_policy_iteration(env, iterations, render, acceptance_threshold):
+def evaluate_policy_iteration(env, iterations, acceptance_threshold):
     start_time = time.time()
     optimal_policy = policy_iteration_algorithm(env, iterations, acceptance_threshold)
-    score = evaluate(env, optimal_policy, render)
+    score = evaluate(env, optimal_policy)
     end_time = time.time()
     print("Best score = %0.2f. Time taken = %4.4f seconds" %
           (np.max(score), end_time - start_time))
@@ -204,7 +202,7 @@ available. A value function is a assigns a value for each state in the environme
             accurate model but does so much faster. I recommend a value of 0.01.
             Higher precision requires more iterations, roughly 100 more iterations
             per point of precision, ie: at my recommended 0.01, it takes about
-            200 iterations to converge, about 300 at 0.001, 400 at 0.0001, and so
+            120 iterations to converge, about 200 at 0.001, 300 at 0.0001, and so
             on. I didn't find a significant increase in accuracy beyond 0.01.
         
     Returns:
@@ -254,11 +252,11 @@ Evaluates value iteration algorithm for a given environment.
 """
 
 
-def evaluate_value_iteration(env, iterations, acceptance_threshold, render):
+def evaluate_value_iteration(env, iterations, acceptance_threshold):
     start_time = time.time()
     optimal_val = value_iteration(env, iterations, acceptance_threshold)
     policy = get_policy(env, optimal_val)
-    policy_score = evaluate(env, policy, render)
+    policy_score = evaluate(env, policy)
     end_time = time.time()
     print("Best score = %0.2f. Time taken = %4.4f seconds" %
           (np.mean(policy_score), end_time - start_time))
@@ -281,7 +279,6 @@ is the optimal path for reaching the goal.
             number of actions available at each state. The number corresponds to
             the direction the agent will take from that state: LEFT = 0, DOWN = 1,
             RIGHT = 2, UP = 3
-        render (boolean): Whether or not to show the agent playing the game
         
     Return:
         total_reward (float): The total reward for a given path. This is the
@@ -289,15 +286,12 @@ is the optimal path for reaching the goal.
 """
 
 
-def get_reward(env, policy, render=False):
+def get_reward(env, policy):
     total_reward = 0
     state = env.reset()
     count = 0
 
     while True:
-        if render:
-            env.render()
-
         state, reward, done, prob = env.step(int(policy[state]))
         total_reward += reward
         count += 1
@@ -319,7 +313,6 @@ episode.
             number of actions available at each state. The number corresponds to
             the direction the agent will take from that state: LEFT = 0, DOWN = 1,
             RIGHT = 2, UP = 3
-        render (boolean): Whether or not to show the agent playing the game
         n_episodes (int): The number of times to run the experiment. A higher
             takes longer, but will give a more accurate sample for the quality
             of the algorithm
@@ -330,10 +323,10 @@ episode.
 """
 
 
-def evaluate(env, policy, render=False, n_episodes=100):
+def evaluate(env, policy, n_episodes=100):
     scores = []
     for episode in range(n_episodes):
-        scores.append(get_reward(env, policy, render))
+        scores.append(get_reward(env, policy))
 
     return np.mean(scores)
 
@@ -349,11 +342,11 @@ if __name__ == '__main__':
     value_times = []
 
     for i in range(100):
-        s, t = evaluate_value_iteration(environment, 1000, 1e-2, False)
+        s, t = evaluate_value_iteration(environment, 1000, 1e-2)
         value_iteration_scores.append(s)
         value_times.append(t)
 
-        s, t = evaluate_policy_iteration(environment, 1000, 1e-2, False)
+        s, t = evaluate_policy_iteration(environment, 1000, 1e-2)
         policy_iteration_scores.append(s)
         policy_times.append(t)
 
